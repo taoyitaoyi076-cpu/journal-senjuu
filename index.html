@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Journal de bord — Senju</title>
+<link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,400;0,600;1,400;1,600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --green-dark: #1a2e18;
+  --green-mid: #2d5a27;
+  --green-light: #4a7c3f;
+  --green-pale: #eaf2e8;
+  --green-faint: #f4f8f3;
+  --gold: #8b6914;
+  --gold-pale: #fbf6e8;
+  --text-primary: #1a1a18;
+  --text-secondary: #5a5a52;
+  --text-muted: #9a9a8a;
+  --border: #d8e4d4;
+  --bg: #f7f5f0;
+  --bg-card: #ffffff;
+  --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text-primary);
+  font-family: 'Crimson Pro', serif;
+  min-height: 100vh;
+  background-image:
+    radial-gradient(ellipse at 20% 0%, rgba(45,90,39,0.06) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 100%, rgba(139,105,20,0.05) 0%, transparent 60%);
+}
+
+/* SIDEBAR */
+.layout { display: flex; min-height: 100vh; }
+
+.sidebar {
+  width: 240px;
+  flex-shrink: 0;
+  background: var(--green-dark);
+  padding: 2rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  height: 100vh;
+  top: 0; left: 0;
+  overflow-y: auto;
+}
+
+.sidebar-logo {
+  margin-bottom: 2.5rem;
+}
+.sidebar-logo-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #ffffff;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+.sidebar-logo-sub {
+  font-size: 11px;
+  font-family: 'DM Mono', monospace;
+  color: rgba(255,255,255,0.4);
+  margin-top: 4px;
+}
+
+.sidebar-clan {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 8px;
+  margin-bottom: 2rem;
+}
+.clan-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: #6ab85e;
+  flex-shrink: 0;
+}
+.clan-label {
+  font-size: 12px;
+  font-family: 'DM Mono', monospace;
+  color: rgba(255,255,255,0.6);
+}
+
+.sidebar-nav { flex: 1; }
+.nav-label {
+  font-size: 10px;
+  font-family: 'DM Mono', monospace;
+  color: rgba(255,255,255,0.3);
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  margin-bottom: 8px;
+}
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  color: rgba(255,255,255,0.55);
+  transition: all .15s;
+  margin-bottom: 2px;
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+  font-family: 'DM Mono', monospace;
+}
+.nav-item:hover { background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.85); }
+.nav-item.active { background: rgba(255,255,255,0.12); color: #ffffff; }
+.nav-icon { font-size: 15px; opacity: .8; }
+
+.sidebar-stats {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.stat-label {
+  font-size: 11px;
+  font-family: 'DM Mono', monospace;
+  color: rgba(255,255,255,0.35);
+}
+.stat-val {
+  font-size: 13px;
+  font-family: 'DM Mono', monospace;
+  color: rgba(255,255,255,0.7);
+  font-weight: 500;
+}
+
+/* MAIN */
+.main {
+  margin-left: 240px;
+  flex: 1;
+  padding: 2.5rem 2rem;
+  max-width: 100%; width: calc(100vw - 240px);
+}
+
+.page { display: none; }
+.page.on { display: block; }
+
+/* PAGE HEADER */
+.page-header {
+  margin-bottom: 2rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid var(--border);
+}
+.page-title {
+  font-size: 26px;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+}
+.page-sub {
+  font-size: 14px;
+  font-family: 'DM Mono', monospace;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+/* CARDS */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: var(--shadow);
+  margin-bottom: 1.25rem;
+}
+
+/* FORM */
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+.form-group { margin-bottom: 1rem; }
+.form-label {
+  display: block;
+  font-size: 11px;
+  font-family: 'DM Mono', monospace;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  margin-bottom: 6px;
+}
+.form-input {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-faint, #fafaf8);
+  color: var(--text-primary);
+  font-family: 'Crimson Pro', serif;
+  font-size: 17px;
+  transition: border-color .15s;
+  outline: none;
+}
+.form-input:focus { border-color: var(--green-light); }
+textarea.form-input {
+  resize: vertical;
+  min-height: 180px;
+  line-height: 1.7;
+}
+
+.type-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+.type-chip {
+  padding: 5px 14px;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  font-size: 13px;
+  font-family: 'DM Mono', monospace;
+  color: var(--text-secondary);
+  cursor: pointer;
+  background: var(--bg-card);
+  transition: all .15s;
+}
+.type-chip:hover { border-color: var(--green-light); color: var(--green-mid); }
+.type-chip.sel { background: var(--green-pale); border-color: var(--green-light); color: var(--green-mid); font-weight: 500; }
+
+.btn-primary {
+  padding: 10px 24px;
+  background: var(--green-dark);
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-family: 'DM Mono', monospace;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background .15s;
+}
+.btn-primary:hover { background: var(--green-mid); }
+
+.btn-secondary {
+  padding: 8px 16px;
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all .15s;
+}
+.btn-secondary:hover { background: var(--green-pale); border-color: var(--green-light); }
+
+/* ENTRIES */
+.filters {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 1.25rem;
+}
+.filter-chip {
+  padding: 4px 12px;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  font-size: 12px;
+  font-family: 'DM Mono', monospace;
+  color: var(--text-muted);
+  cursor: pointer;
+  background: var(--bg-card);
+  transition: all .15s;
+}
+.filter-chip:hover { border-color: var(--green-light); color: var(--green-mid); }
+.filter-chip.active { background: var(--green-pale); border-color: var(--green-light); color: var(--green-mid); }
+
+.entry-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  margin-bottom: 10px;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  transition: border-color .15s;
+}
+.entry-card:hover { border-color: #c0d8bb; }
+
+.entry-head {
+  padding: 14px 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+}
+.entry-card.open .entry-head {
+  border-bottom: 1px solid var(--border);
+}
+.entry-meta { display: flex; align-items: center; gap: 10px; }
+
+.tag {
+  font-size: 10px;
+  font-family: 'DM Mono', monospace;
+  padding: 3px 9px;
+  border-radius: 20px;
+  border: 1px solid;
+  font-weight: 500;
+}
+.tag-narration { background: #eaf3de; color: #27500a; border-color: #c0dd97; }
+.tag-rapport { background: #e6f1fb; color: #0c447c; border-color: #b5d4f4; }
+.tag-reflexion { background: #faeeda; color: #633806; border-color: #fac775; }
+
+.entry-title-text {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.entry-right { display: flex; align-items: center; gap: 10px; }
+.entry-date-text {
+  font-size: 12px;
+  font-family: 'DM Mono', monospace;
+  color: var(--text-muted);
+}
+.entry-delete-btn {
+  font-size: 11px;
+  font-family: 'DM Mono', monospace;
+  color: var(--text-muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 3px 8px;
+  border-radius: 6px;
+  transition: all .15s;
+}
+.entry-delete-btn:hover { color: #c0392b; background: #fbeaea; }
+.entry-chevron {
+  font-size: 13px;
+  color: var(--text-muted);
+  transition: transform .2s;
+}
+.entry-card.open .entry-chevron { transform: rotate(180deg); }
+
+.entry-body {
+  display: none;
+  padding: 20px 18px;
+}
+.entry-card.open .entry-body { display: block; }
+.entry-content {
+  font-size: 17px;
+  line-height: 1.8;
+  color: var(--text-primary);
+  white-space: pre-wrap;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 4rem 2rem;
+  color: var(--text-muted);
+  font-style: italic;
+  font-size: 16px;
+}
+
+/* DISCORD */
+.discord-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: var(--shadow);
+  margin-bottom: 1.25rem;
+}
+.discord-select {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #fafaf8;
+  color: var(--text-primary);
+  font-family: 'DM Mono', monospace;
+  font-size: 13px;
+  margin-bottom: 1.25rem;
+  outline: none;
+}
+.discord-preview {
+  background: #36393f;
+  color: #dcddde;
+  border-radius: 8px;
+  padding: 16px;
+  font-family: 'DM Mono', monospace;
+  font-size: 13px;
+  line-height: 1.7;
+  white-space: pre-wrap;
+  min-height: 100px;
+  margin-bottom: 1rem;
+}
+.discord-actions { display: flex; gap: 10px; }
+
+/* STATS PAGE */
+.stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
+.stat-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.25rem;
+  box-shadow: var(--shadow);
+  text-align: center;
+}
+.stat-big {
+  font-size: 36px;
+  font-weight: 600;
+  color: var(--green-mid);
+  line-height: 1;
+  margin-bottom: 6px;
+}
+.stat-desc {
+  font-size: 12px;
+  font-family: 'DM Mono', monospace;
+  color: var(--text-muted);
+}
+
+.recent-list { }
+.recent-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+.recent-item:last-child { border-bottom: none; }
+.recent-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.dot-narration { background: #3b6d11; }
+.dot-rapport { background: #185fa5; }
+.dot-reflexion { background: #854f0b; }
+.recent-title { font-size: 15px; color: var(--text-primary); flex: 1; }
+.recent-date { font-size: 11px; font-family: 'DM Mono', monospace; color: var(--text-muted); }
+
+/* TOAST */
+.toast {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  background: var(--green-dark);
+  color: #fff;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-family: 'DM Mono', monospace;
+  font-size: 13px;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: all .2s;
+  pointer-events: none;
+  z-index: 999;
+}
+.toast.show { opacity: 1; transform: translateY(0); }
+
+@media (max-width: 700px) {
+  .sidebar { width: 100%; height: auto; position: relative; flex-direction: row; flex-wrap: wrap; padding: 1rem; }
+  .main { margin-left: 0; padding: 1.25rem; }
+  .layout { flex-direction: column; }
+  .form-grid { grid-template-columns: 1fr; }
+  .stats-grid { grid-template-columns: 1fr 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div class="layout">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-title">Journal<br>de bord</div>
+      <div class="sidebar-logo-sub">???? Senju</div>
+    </div>
+
+    <div class="sidebar-clan">
+      <div class="clan-dot"></div>
+      <input class="form-input" id="rank-input" style="font-size:12px;padding:6px 10px;background:rgba(255,255,255,0.08);border:none;color:white;" value="Apprenti Genin · Konoha" onchange="saveRank()">
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-label">Navigation</div>
+      <button class="nav-item active" onclick="goPage('accueil',this)">
+        <span class="nav-icon">⌂</span> Accueil
+      </button>
+      <button class="nav-item" onclick="goPage('ecrire',this)">
+        <span class="nav-icon">✎</span> Écrire
+      </button>
+      <button class="nav-item" onclick="goPage('journal',this)">
+        <span class="nav-icon">☰</span> Journal
+      </button>
+      <button class="nav-item" onclick="goPage('discord',this)">
+        <span class="nav-icon">⇪</span> Export Discord
+      </button>
+    </nav>
+
+    <div class="sidebar-stats">
+      <div class="stat-row">
+        <span class="stat-label">Entrées</span>
+        <span class="stat-val" id="sb-total">0</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">Narrations</span>
+        <span class="stat-val" id="sb-narr">0</span>
+      </div>    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- ACCUEIL -->
+    <div class="page on" id="p-accueil">
+      <div class="page-header">
+        <div class="page-title">Tableau de bord</div>
+        <div class="page-sub">Clan Senju · Konohagakure no Sato</div>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-big" id="st-total">0</div>
+          <div class="stat-desc">entrées au total</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-big" id="st-narr">0</div>
+          <div class="stat-desc">narrations</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-big" id="st-rapp">0</div>
+          <div class="stat-desc">rapports MJ</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="form-label" style="margin-bottom:1rem;">Entrées récentes</div>
+        <div id="recent-list"><div class="empty-state">Aucune entrée pour le moment.</div></div>
+      </div>
+
+      <div class="card" style="background:var(--gold-pale);border-color:#e8d9a0;">
+        <div style="font-size:13px;font-family:'DM Mono',monospace;color:var(--gold);margin-bottom:8px;">NOTE DU MJ</div>
+        <div style="font-size:15px;line-height:1.7;color:#5a4a20;font-style:italic;">
+          « Cet espace est dédié à tes narrations. Celles-ci doivent refléter les ressentis de ton personnage, son évolution ainsi que son parcours. Elles permettront de te proposer des scènes adaptées et personnalisées, en cohérence avec ton développement. »
+        </div>
+      </div>
+    </div>
+
+    <!-- ÉCRIRE -->
+    <div class="page" id="p-ecrire">
+      <div class="page-header">
+        <div class="page-title">Nouvelle entrée</div>
+        <div class="page-sub">Narration</div>
+      </div>
+
+      <div class="card">
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Titre de l'entrée</label>
+            <input class="form-input" id="f-title" placeholder="Ex: Premier entraînement...">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Date (en jeu)</label>
+            <input class="form-input" id="f-date" placeholder="Ex: Jour 1 — Mois des fleurs">
+          </div>
+        </div>
+
+        
+
+        <div class="form-group">
+          <label class="form-label">Contenu</label>
+          <textarea class="form-input" id="f-body" placeholder="Écris ici ce que ton personnage a vécu, ressenti, observé durant cette journée ou cette session..."></textarea>
+        </div>
+
+        <div style="display:flex;justify-content:flex-end;gap:10px;">
+          <button class="btn-secondary" onclick="clearForm()">Effacer</button>
+          <button class="btn-primary" onclick="saveEntry()">Sauvegarder l'entrée</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- JOURNAL -->
+    <div class="page" id="p-journal">
+      <div class="page-header">
+        <div class="page-title">Journal complet</div>
+        <div class="page-sub">Toutes les narrations</div>
+      </div>
+
+      
+
+      <div id="entries-list"></div>
+    </div>
+
+    <!-- DISCORD -->
+    <div class="page" id="p-discord">
+      <div class="page-header">
+        <div class="page-title">Export Discord</div>
+        <div class="page-sub">Copie ton entrée en format Discord</div>
+      </div>
+
+      <div class="discord-card">
+        <label class="form-label">Sélectionner une entrée</label>
+        <select class="discord-select" id="d-sel" onchange="previewDiscord()">
+          <option value="">— Choisir une entrée —</option>
+        </select>
+
+        <label class="form-label">Aperçu</label>
+        <div class="discord-preview" id="d-preview">Sélectionne une entrée pour voir l'aperçu.</div>
+
+        <div class="discord-actions">
+          <button class="btn-primary" onclick="copyDiscord()">Copier pour Discord</button>
+          <button class="btn-secondary" onclick="copyRaw()">Copier texte brut</button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let entries = JSON.parse(localStorage.getItem('senju_journal')||'[]');
+let editingId = null;
+let currentType = 'narration';
+let currentFilter = 'tous';
+
+// Charger le rang sauvegardé
+window.addEventListener('DOMContentLoaded', ()=>{
+  const savedRank = localStorage.getItem('senju_rank');
+  if(savedRank){
+    const rankInput = document.getElementById('rank-input');
+    if(rankInput){
+      rankInput.value = savedRank;
+    }
+  }
+});
+
+
+function save(){ localStorage.setItem('senju_journal', JSON.stringify(entries)); updateStats(); }
+
+function saveRank(){
+  localStorage.setItem('senju_rank', document.getElementById('rank-input').value);
+}
+
+function updateStats(){
+  const total = entries.length;
+  ['st-total','sb-total','st-narr','sb-narr'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.textContent=total;
+  });
+  renderRecent();
+}
+
+function renderRecent(){
+  const el = document.getElementById('recent-list');
+  if(!el) return;
+  const recent = entries.slice(0,5);
+  if(!recent.length){ el.innerHTML='<div class="empty-state">Aucune entrée pour le moment.</div>'; return; }
+  el.innerHTML = recent.map(e=>`
+    <div class="recent-item">
+      <div class="recent-dot dot-${e.type}"></div>
+      <div class="recent-title">${e.title}</div>
+      <div class="recent-date">${e.date}</div>
+    </div>
+  `).join('');
+}
+
+function goPage(id, btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
+  document.getElementById('p-'+id).classList.add('on');
+  btn.classList.add('active');
+  if(id==='journal') renderEntries();
+  if(id==='discord') renderDiscordSelect();
+  if(id==='accueil') updateStats();
+}
+
+function selType(btn, type){
+  document.querySelectorAll('.type-chip').forEach(b=>b.classList.remove('sel'));
+  btn.classList.add('sel');
+  currentType = type;
+}
+
+function saveEntry(){
+  const title = document.getElementById('f-title').value.trim();
+  const date  = document.getElementById('f-date').value.trim();
+  const body  = document.getElementById('f-body').value.trim();
+
+  if(!title || !body){
+    toast('Titre et contenu requis.');
+    return;
+  }
+
+  if(editingId){
+    const index = entries.findIndex(e=>e.id===editingId);
+    if(index !== -1){
+      entries[index].title = title;
+      entries[index].date = date || '—';
+      entries[index].body = body;
+    }
+    editingId = null;
+    toast('Narration modifiée !');
+  } else {
+    entries.unshift({
+      id: Date.now(),
+      title,
+      date: date || '—',
+      type: 'narration',
+      body
+    });
+    toast('Narration sauvegardée !');
+  }
+
+  save();
+  clearForm();
+  renderEntries();
+}
+
+function clearForm(){
+  document.getElementById('f-title').value='';
+  document.getElementById('f-date').value='';
+  document.getElementById('f-body').value='';
+  editingId = null;
+}
+
+function renderEntries(){
+  const list = document.getElementById('entries-list');
+  const filtered = entries;
+  if(!filtered.length){ list.innerHTML='<div class="empty-state">Aucune entrée dans cette catégorie.</div>'; return; }
+  list.innerHTML = filtered.map(e=>`
+    <div class="entry-card" id="ec-${e.id}">
+      <div class="entry-head" onclick="toggleEntry(${e.id})">
+        <div class="entry-meta">
+          <span class="tag tag-${e.type}">Narration</span>
+          <span class="entry-title-text">${e.title}</span>
+        </div>
+        <div class="entry-right">
+          <span class="entry-date-text">${e.date}</span>
+          <button class="entry-delete-btn" onclick="event.stopPropagation();editEntry(${e.id})">modifier</button><button class="entry-delete-btn" onclick="event.stopPropagation();deleteEntry(${e.id})">supprimer</button>
+          <span class="entry-chevron">▾</span>
+        </div>
+      </div>
+      <div class="entry-body">
+        <div class="entry-content">${e.body}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function toggleEntry(id){
+  document.getElementById('ec-'+id).classList.toggle('open');
+}
+
+function editEntry(id){
+  const e = entries.find(x=>x.id===id);
+  if(!e) return;
+
+  document.getElementById('f-title').value = e.title;
+  document.getElementById('f-date').value = e.date;
+  document.getElementById('f-body').value = e.body;
+
+  editingId = id;
+
+  goPage('ecrire', document.querySelectorAll('.nav-item')[1]);
+  toast('Modification en cours...');
+}
+
+function deleteEntry(id){
+  if(!confirm('Supprimer cette entrée ?')) return;
+  entries = entries.filter(e=>e.id!==id);
+  save();
+  renderEntries();
+  renderDiscordSelect();
+}
+
+function renderDiscordSelect(){
+  const sel = document.getElementById('d-sel');
+  sel.innerHTML = '<option value="">— Choisir une entrée —</option>' +
+    entries.map(e=>`<option value="${e.id}">${e.title} (${e.date})</option>`).join('');
+  document.getElementById('d-preview').textContent = 'Sélectionne une entrée pour voir l\'aperçu.';
+}
+
+function previewDiscord(){
+  const id = parseInt(document.getElementById('d-sel').value);
+  const e = entries.find(x=>x.id===id);
+  if(!e){ document.getElementById('d-preview').textContent='Sélectionne une entrée pour voir l\'aperçu.'; return; }
+  const typeLabel = '📖 Narration';
+  document.getElementById('d-preview').textContent = buildDiscord(e, typeLabel);
+}
+
+function buildDiscord(e, typeLabel){
+  return `${typeLabel} — **${e.title}**\n*${e.date}*\n\n${e.body}`;
+}
+
+function copyDiscord(){
+  const id = parseInt(document.getElementById('d-sel').value);
+  const e = entries.find(x=>x.id===id);
+  if(!e){ toast('Sélectionne une entrée.'); return; }
+  const typeLabel = '📖 Narration';
+  navigator.clipboard.writeText(buildDiscord(e,typeLabel)).then(()=>toast('Copié pour Discord !'));
+}
+
+function copyRaw(){
+  const id = parseInt(document.getElementById('d-sel').value);
+  const e = entries.find(x=>x.id===id);
+  if(!e){ toast('Sélectionne une entrée.'); return; }
+  navigator.clipboard.writeText(`${e.title}\n${e.date}\n\n${e.body}`).then(()=>toast('Texte brut copié !'));
+}
+
+function toast(msg){
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'), 2500);
+}
+
+updateStats();
+</script>
+</body>
+</html>
